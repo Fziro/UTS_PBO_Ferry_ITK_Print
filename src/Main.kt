@@ -1,7 +1,10 @@
 import java.util.Scanner
 
 // Ferry Kurniawan - 04231033
-// Tema 9: ITK-Print (Versi Final dengan Dashboard Status Lengkap)
+// Tema 9: ITK-Print (Versi Final dengan Sinkronisasi Class Dokumen)
+
+// 1. Class Dokumen sesuai Rancangan Diagram
+class Dokumen(val namaFile: String, val jumlahHalaman: Int, val isWarna: Boolean)
 
 class Pelanggan(private val _nama: String, private var _saldo: Double) {
     val nama: String get() = _nama
@@ -23,23 +26,23 @@ class MesinPrint(private var _tinta: Int, private var _kertas: Int) {
     private val hargaHitamPutih = 500
     private val hargaWarna = 1500
 
-    // GETTER: Agar main() bisa membaca nilai stok tanpa bisa mengubahnya secara langsung
     val tinta: Int get() = _tinta
     val kertas: Int get() = _kertas
 
-    fun cetak(pelanggan: Pelanggan, namaFile: String, hal: Int, isWarna: Boolean) {
-        val tarif = if (isWarna) hargaWarna else hargaHitamPutih
-        val totalBiaya = hal * tarif
+    // Menerima objek Dokumen secara utuh (Object as Parameter)
+    fun cetak(pelanggan: Pelanggan, dokumen: Dokumen) {
+        val tarif = if (dokumen.isWarna) hargaWarna else hargaHitamPutih
+        val totalBiaya = dokumen.jumlahHalaman * tarif
 
-        println("\n>> Memproses: $namaFile ($hal halaman | ${if(isWarna) "Warna" else "B&W"})")
+        println("\n>> Memproses: ${dokumen.namaFile} (${dokumen.jumlahHalaman} halaman | ${if(dokumen.isWarna) "Warna" else "B&W"})")
 
-        if (_tinta < hal || _kertas < hal) {
+        if (_tinta < dokumen.jumlahHalaman || _kertas < dokumen.jumlahHalaman) {
             println("!! Gagal: Stok mesin tidak cukup (Tinta: $_tinta, Kertas: $_kertas) !!")
         } else if (pelanggan.saldo < totalBiaya) {
             println("!! Gagal: Saldo kurang. Butuh Rp$totalBiaya, Saldo anda Rp${pelanggan.saldo} !!")
         } else {
-            _tinta -= hal
-            _kertas -= hal
+            _tinta -= dokumen.jumlahHalaman
+            _kertas -= dokumen.jumlahHalaman
             pelanggan.kurangiSaldo(totalBiaya.toDouble())
 
             println("SUCCESS: Dokumen berhasil dicetak!")
@@ -86,10 +89,11 @@ fun main() {
                 println("Jenis Cetak: 1. Hitam Putih (Rp500) | 2. Warna (Rp1500)")
                 val jenis = sc.nextInt()
 
-                mesin.cetak(user, file, hal, jenis == 2)
+                // Membuat objek Dokumen terlebih dahulu sebelum dikirim ke mesin
+                val doc = Dokumen(file, hal, jenis == 2)
+                mesin.cetak(user, doc)
             }
             3 -> {
-                // TAMPILAN BARU: Status Pelanggan + Status Mesin
                 println("\n=== DASHBOARD STATUS ITK-PRINT ===")
                 println("Nama Pelanggan : ${user.nama}")
                 println("Saldo Akun     : Rp${user.saldo}")
